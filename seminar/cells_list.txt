@@ -1,0 +1,88 @@
+cells: 87
+0 markdown # 🛡️ Prompt Firewall — HSU AI-Driven Challenge 2026
+1 markdown ---
+2 code # Chạy trên Google Colab / Kaggle. Nếu môi trường đã có sẵn thì bỏ qua cell này.
+3 code import os, re, json, time, random, warnings, gc
+4 markdown ---
+5 code from datasets import load_dataset
+6 markdown ### 1.1 Phân bố nhãn
+7 code print('--- TRAIN ---')
+8 markdown > **Quan sát 1 — Mất cân bằng nặng.** Chỉ ~7.5% prompt là unsafe. Nghĩa là model "luôn trả lời Safe"
+9 markdown ### 1.2 Độ dài prompt → chọn `max_len`
+10 code lens_char = train_full.user_input.str.len()
+11 markdown ### 1.3 Baseline tham chiếu: OpenAI Moderation API
+12 code from sklearn.metrics import f1_score, precision_score, recall_score
+13 markdown ### 1.4 Nhìn tận mắt vài mẫu unsafe
+14 code jb = train_full[train_full.jailbreaking == 1].user_input.str[:300]
+15 markdown Nhìn dữ liệu thật cho thấy tín hiệu nằm ở đâu:
+16 markdown ---
+17 code RISK_LABELS = ['safe', 'toxic', 'jailbreak']
+18 markdown ### 2.1 Chuẩn hoá văn bản — *nhẹ tay là có chủ ý*
+19 code # Ký tự vô hình / điều khiển: kỹ thuật né lọc kinh điển — chèn zero-width space giữa các chữ
+20 markdown ---
+21 code from sklearn.model_selection import train_test_split
+22 markdown ### 3.1 Bộ công cụ đánh giá dùng chung
+23 code from sklearn.metrics import (f1_score, precision_score, recall_score,
+24 markdown ---
+25 code from sklearn.feature_extraction.text import TfidfVectorizer
+26 code # So sánh nhanh 2 ứng viên tuyến tính trên tập val
+27 markdown ### 4.1 Hiệu chỉnh xác suất (calibration)
+28 code fast_clf = CalibratedClassifierCV(
+29 markdown ### 4.2 Model học được gì? (khả năng diễn giải)
+30 code # Lấy trọng số từ một LinearSVC thô (calibrated wrapper che mất coef_)
+31 markdown ---
+32 markdown ### 5.0 Chọn backbone
+33 code from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
+34 markdown ### 5.1 Vòng huấn luyện
+35 code def build_model():
+36 markdown ### 5.2 Dò ngưỡng trên val, chấm trên test
+37 code P_va_bert = predict_probs(bert, val_ds)      # (n_val, 3)
+38 markdown ### 5.3 Ngưỡng chọn trên val tổng quát hoá tốt đến đâu?
+39 code th_argmax, _ = tune_threshold(y_va, p_va_bert, robust=False)
+40 markdown ---
+41 code def cascade_predict(p_fast, p_bert, lo, hi, th_bert):
+42 markdown ### 6.1 Đường cong đánh đổi F1 ↔ tỉ lệ escalation
+43 code import matplotlib.pyplot as plt
+44 markdown ### 6.2 Chấm cascade trên test
+45 code pred_te_casc, band_te = cascade_predict(p_te_fast, p_te_bert, LO, HI, TH_BERT)
+46 markdown ---
+47 code # Dò ngưỡng riêng cho đầu ra jailbreaking (nó hiếm hơn nhiều → ngưỡng khác hẳn)
+48 code def assign_risk(unsafe_pred, p_jb, th_jb=None):
+49 markdown **Đọc kết quả:** lớp `jailbreak` có F1 thấp hơn hẳn — điều này *đúng như dự kiến* và cần nói rõ với 
+50 markdown ### 7.2 Tầng regex — bù đúng chỗ dữ liệu thiếu
+51 code # Chỉ giữ mẫu mô tả *cấu trúc tấn công*, không giữ mẫu mô tả chủ đề.
+52 code # --- giờ mới chạm test, đo CẢ HAI phương án ---
+53 markdown **Đọc kết quả — đây là chỗ trực giác dễ sai nhất trong cả notebook.**
+54 markdown ---
+55 code # Dựng đúng 10.000 prompt bằng cách lặp lại tập test (giữ nguyên phân bố độ dài thật)
+56 markdown ### 8.1 Hai tối ưu inference đáng giá
+57 code @torch.inference_mode()
+58 markdown ### 8.2 Ba pipeline dự tuyển
+59 code def pipe_fast(prompts):
+60 markdown ### 8.3 F1 và tốc độ, cạnh nhau
+61 code combo = pd.DataFrame({
+62 markdown ### 8.4 (Tuỳ chọn) Ép thêm tốc độ
+63 code # !pip install -q onnxruntime "optimum[onnxruntime]"
+64 markdown ---
+65 code %%writefile artifacts/prompt_firewall.py
+66 code # Import ngược từ chính file vừa ghi — notebook và bài nộp dùng chung một đoạn mã
+67 markdown ### 9.1 Kiểm tra tỉnh táo — chạy thử trên prompt tự viết
+68 code probe = [
+69 markdown ### 9.2 Kiểm tra vòng lặp lưu → nạp
+70 code reloaded = PromptFirewall.load(CFG.out_dir / 'firewall_model', device=DEVICE)
+71 markdown ### 9.3 Script nộp bài + chạy thử ngoài notebook
+72 code PREDICT_PY = '''"""Script chấm điểm — dùng cho BGK.
+73 code # Chạy thật predict.py trong tiến trình riêng — bằng chứng artifact dùng được ngoài notebook
+74 markdown ---
+75 code final = combo.copy()
+76 markdown ### 10.1 Mô phỏng công thức chấm của BGK
+77 code def total_score(f1, t, t_best, f1_best):
+78 markdown ### 10.2 Vậy nộp cái nào?
+79 code winners = pivot.idxmax(axis=0)
+80 markdown ## Rút ra
+81 markdown ---
+82 markdown ### 11.1 Gộp 4 nguồn dữ liệu
+83 code # ---- chưa chạy: bật khi cần mở rộng dữ liệu ----
+84 markdown ### 11.2 Nếu private test là tiếng Việt
+85 code # ---- chưa chạy: đường dẫn dữ liệu song ngữ ----
+86 markdown ---

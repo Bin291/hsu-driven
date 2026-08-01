@@ -1,0 +1,47 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+
+# Secrets
+.env
+.env.*
+*.key
+
+# Model artifacts sinh ra khi train (quá nặng cho git)
+artifacts/firewall_model/
+artifacts/*.csv
+*.safetensors
+*.joblib
+*.bin
+*.pt
+*.ckpt
+*.h5
+
+# Data & logs
+data/
+*.log
+wandb/
+runs/
