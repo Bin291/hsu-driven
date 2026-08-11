@@ -14,6 +14,42 @@
 
 ---
 
+## 0. Tiến độ cuộc thi & việc cần nộp
+
+**Đã qua Vòng Sơ loại.** Hiện đang ở **Vòng Bảng**, theo
+[thông báo yêu cầu Vòng Bảng](Yeu_Cau_Vong_Bang_HSU_AI_Driven_Challenge_2026.md).
+
+- **Hạn nộp Vòng Bảng: 17:00, Thứ Tư 12/08/2026** — gửi về `fit@hoasen.edu.vn`.
+- **Tiêu chí chấm không đổi:** `Tổng điểm = F1-Score × 60% + Tốc độ (Inference Latency) × 40%`,
+  đội nhanh nhất trên hạ tầng chung (Colab) nhận điểm tốc độ tối đa.
+
+Hồ sơ Vòng Bảng cần đủ 4 thành phần:
+
+| # | Thành phần | Trạng thái | File |
+|---|---|---|---|
+| 1 | Source code hoàn chỉnh | ✅ | [`prompt_firewall_toxicchat.ipynb`](prompt_firewall_toxicchat.ipynb), `artifacts/` |
+| 2 | Bản chạy trên Google Colab (để BGK đo latency trên hạ tầng chung) | ✅ hướng dẫn + script | [`COLAB.md`](COLAB.md) |
+| 3 | File hướng dẫn thực thi (README) | ✅ | [`HUONG_DAN_CHAY.md`](HUONG_DAN_CHAY.md), Mục 11 bên dưới |
+| 4 | Báo cáo kết quả cập nhật | ✅ | file này (`BAO_CAO.md`) |
+
+**Việc đã làm trong đợt cập nhật này:**
+- Rà lại toàn bộ notebook, xác nhận logic khớp với yêu cầu kỹ thuật trong
+  [thông báo Vòng Sơ loại](../TB_2026_Mota_AI-Driven%20Challenge%20(1)%20(1).pdf)
+  (phân loại Safe/Unsafe + chỉ rõ loại rủi ro, tối ưu latency, công thức chấm 60/40).
+- Kiểm thử chạy lại notebook trên môi trường Windows/Python mới hơn bản đã kiểm chứng gốc
+  (macOS/Python 3.9.6) để phát hiện sớm các lỗi phụ thuộc version trước khi nộp — xem
+  Mục 11.6 "Sự cố thường gặp".
+- Viết `COLAB.md`: gói lại các bước chạy trên Google Colab (cài đặt, chạy toàn bộ notebook,
+  đọc F1/latency, tải artifacts) để đáp ứng thành phần #2 mà không cần nộp thêm một file
+  `.ipynb` riêng biệt.
+
+**Việc cần làm tiếp cho Vòng Chung kết (nếu qua Vòng Bảng, dự kiến 17/08/2026):**
+- Slide thuyết trình (tổng quan mô hình, giải pháp kỹ thuật, kết quả).
+- Chuẩn bị môi trường demo trực tiếp.
+- Chuẩn bị phản biện các câu hỏi chuyên môn từ Ban giám khảo.
+
+---
+
 ## 1. Tóm tắt kết quả
 
 Hệ thống nộp thi là một **cascade 3 tầng** với chi phí tăng dần, mỗi tầng chỉ xử lý phần
